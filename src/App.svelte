@@ -17,7 +17,7 @@
 
     async function getWord() {
         let [word, definition] = await fetchData();
-        while (word === null && definition === null) {
+        while (word === null || definition === null) {
             [word, definition] = await fetchData();
         }
         return [word as string, definition as string];
