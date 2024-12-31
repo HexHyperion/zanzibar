@@ -20,7 +20,8 @@
         while (word === null || definition === null) {
             [word, definition] = await fetchData();
         }
-        return [word as string, definition as string];
+
+        return [word[0] as string, definition as string];
     }
 
 
@@ -36,17 +37,22 @@
 
 {#await getSeven()}
     <div class="box-border flex justify-center items-center">
-        <h1 class="text-purple-500">Loading...</h1>
+        <h1 class="text-white">Loading...</h1>
     </div>
 {:then words}
-    <div class="box-border flex justify-center items-center flex-col mb-4 gap-1">
+    <div class="box-border flex items-start justify-center flex-col mb-4 gap-1 w-fit">
         {#each words as word, index}
-            <p class="text-purple-500">{index+1}. {word[0]}</p>
+            <div class="flex gap-1 items-center">
+                <p class="text-white text-xl mr-3">{index+1}.</p>
+                {#each word[0] as letter}
+                    <input type="text" class="w-10 h-10 text-center text-2xl bg-neutral-900" value={letter.toUpperCase()} readonly>
+                {/each}
+            </div>
         {/each}
     </div>
-    <div class="box-border flex justify-center items-center flex-col gap-1">
+    <div class="box-border flex justify-center items-start flex-col gap-1">
         {#each words as wordDef, index}
-            <p class="text-purple-500">{index+1}. {wordDef[1]}</p>
+            <p class="text-white">{index+1}. {wordDef[1]}</p>
         {/each}
     </div>
 {/await}
