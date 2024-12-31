@@ -22,11 +22,31 @@
         }
         return [word as string, definition as string];
     }
+
+
+    async function getSeven() {
+        const words = [];
+        for (let i = 0; i < 7; i++) {
+            words.push(await getWord());
+        }
+        return words;
+    }
 </script>
 
 
-{#await getWord() then word}
-    <div class="h-screen box-border flex justify-center items-center">
-        <h1 class="text-purple-500">{word[0]} - {word[1]}</h1>
+{#await getSeven()}
+    <div class="box-border flex justify-center items-center">
+        <h1 class="text-purple-500">Loading...</h1>
+    </div>
+{:then words}
+    <div class="box-border flex justify-center items-center flex-col mb-4 gap-1">
+        {#each words as word, index}
+            <p class="text-purple-500">{index+1}. {word[0]}</p>
+        {/each}
+    </div>
+    <div class="box-border flex justify-center items-center flex-col gap-1">
+        {#each words as wordDef, index}
+            <p class="text-purple-500">{index+1}. {wordDef[1]}</p>
+        {/each}
     </div>
 {/await}
