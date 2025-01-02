@@ -17,7 +17,7 @@
 
     async function getWord() {
         let [word, definition] = await fetchData();
-        while (word === null || definition === null) {
+        while (word == null || definition == null) {
             [word, definition] = await fetchData();
         }
 
@@ -32,19 +32,45 @@
         }
         return words;
     }
+    
+
+    function checkFilledRow(input: HTMLInputElement) {
+        if (input.parentElement) {
+            const inputs = input.parentElement.getElementsByTagName("input");
+            for (let i = 0; i < inputs.length; i++) {
+                if (inputs[i].value.length <= 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else return false;
+    }
 
 
-    // eventlistener input albo keyup
-    // var elts = document.getElementsByClassName('test')
-    // Array.from(elts).forEach(function(elt){
-    //     elt.addEventListener("keyup", function(event) {
-    //         // Number 13 is the "Enter" key on the keyboard
-    //         if (event.keyCode === 13 || elt.value.length == 3) {
-    //             // Focus on the next sibling
-    //             elt.nextElementSibling.focus()
-    //         }
-    //     });
-    // })
+    function checkCorrectRow(input: HTMLInputElement) {
+        if (input.parentElement) {
+            const inputs = input.parentElement.getElementsByTagName("input");
+            for (let i = 0; i < inputs.length; i++) {
+                if (inputs[i].value.toUpperCase() != inputs[i].dataset.letter) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else return false;
+    }
+
+
+    function setSuccess(input: HTMLInputElement) {
+        if (input.parentElement) {
+            const inputs = input.parentElement.getElementsByTagName("input");
+            for (let i = 0; i < inputs.length; i++) {
+                inputs[i].style.backgroundColor = "rgba(0, 255, 196, 0.5)";
+                inputs[i].readOnly = true;
+            }
+        }
+    }
 </script>
 
 
@@ -61,17 +87,26 @@
                     <input class="w-10 h-10 text-center text-2xl bg-neutral-900"
                         type="text"
                         maxlength="1"
+                        autocapitalize="off"
+                        autocorrect="off"
                         autocomplete="off"
+                        spellcheck="false"
                         data-letter={letter.toUpperCase()}
                         on:input={(e) => ((e.target as HTMLInputElement).nextElementSibling as HTMLInputElement)?.focus()}
                         on:keydown={(e) => {
+                            // Gotta love TypeScript inside HTML inside Svelte
                             if (e.key == "Backspace") {
                                 (e.target as HTMLInputElement).value = "";
                                 (e.target as HTMLInputElement).focus();
                             }
-                            else if (e.key == "Enter") {
-                                // go to next line of inputs (it's the next element that would be focused with tab, but .focus() doesn't work)
-                                // looks like we need to simulate the tab key press 
+                            else if (e.key == "Enter"
+                                && e.target
+                                && checkFilledRow(e.target as HTMLInputElement)
+                            ) {
+                                if (checkCorrectRow(e.target as HTMLInputElement)) {
+                                    setSuccess(e.target as HTMLInputElement);
+                                }
+                                ((e.target as HTMLInputElement).parentElement?.nextElementSibling?.children[1] as HTMLInputElement)?.focus();
                             }
                             else if (e.key == "ArrowLeft") {
                                 ((e.target as HTMLInputElement).previousElementSibling as HTMLInputElement)?.focus();
