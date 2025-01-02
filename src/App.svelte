@@ -32,6 +32,19 @@
         }
         return words;
     }
+
+
+    // eventlistener input albo keyup
+    // var elts = document.getElementsByClassName('test')
+    // Array.from(elts).forEach(function(elt){
+    //     elt.addEventListener("keyup", function(event) {
+    //         // Number 13 is the "Enter" key on the keyboard
+    //         if (event.keyCode === 13 || elt.value.length == 3) {
+    //             // Focus on the next sibling
+    //             elt.nextElementSibling.focus()
+    //         }
+    //     });
+    // })
 </script>
 
 
@@ -45,7 +58,29 @@
             <div class="flex gap-1 items-center">
                 <p class="text-white text-xl mr-3">{index+1}.</p>
                 {#each word[0] as letter}
-                    <input type="text" class="w-10 h-10 text-center text-2xl bg-neutral-900" value={letter.toUpperCase()} readonly>
+                    <input class="w-10 h-10 text-center text-2xl bg-neutral-900"
+                        type="text"
+                        maxlength="1"
+                        autocomplete="off"
+                        data-letter={letter.toUpperCase()}
+                        on:input={(e) => ((e.target as HTMLInputElement).nextElementSibling as HTMLInputElement)?.focus()}
+                        on:keydown={(e) => {
+                            if (e.key == "Backspace") {
+                                (e.target as HTMLInputElement).value = "";
+                                (e.target as HTMLInputElement).focus();
+                            }
+                            else if (e.key == "Enter") {
+                                // go to next line of inputs (it's the next element that would be focused with tab, but .focus() doesn't work)
+                                // looks like we need to simulate the tab key press 
+                            }
+                            else if (e.key == "ArrowLeft") {
+                                ((e.target as HTMLInputElement).previousElementSibling as HTMLInputElement)?.focus();
+                            }
+                            else if (e.key == "ArrowRight") {
+                                ((e.target as HTMLInputElement).nextElementSibling as HTMLInputElement)?.focus();
+                            }
+                        }}
+                    >
                 {/each}
             </div>
         {/each}
