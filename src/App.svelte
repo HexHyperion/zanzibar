@@ -2,6 +2,7 @@
     const wordEndpoint = "https://random-word-api.herokuapp.com/word";
     const definitionEndpoint = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
     async function fetchData() {
         const fetchedWord = await fetch(wordEndpoint);
@@ -71,6 +72,20 @@
             }
         }
     }
+
+
+    function letterPress(letter: string, button: HTMLButtonElement) {
+        const inputs = document.getElementsByTagName("input");
+        for (let i = 0; i < inputs.length; i++) {
+            if (inputs[i].dataset.letter == letter) {
+                inputs[i].value = letter;
+                inputs[i].readOnly = true;
+            }
+        }
+        button.classList.remove("bg-violet-500");
+        button.classList.add("bg-neutral-900");
+        button.disabled = true;     // untested
+    }
 </script>
 
 
@@ -118,6 +133,22 @@
                     >
                 {/each}
             </div>
+        {/each}
+    </div>
+    <div class="box-border flex justify-center items-center mb-4 gap-1 h-fit">
+        <div class="flex gap-1 items-center">
+            <!-- For now, small test -->
+            {#each Array(9) as _, i}
+                <div class="relative">
+                    <input class="w-10 h-10 text-center text-2xl bg-neutral-900" type="text" maxlength="1" readonly>
+                    <span class="absolute bottom-1 left-1 text-xs text-neutral-400">{i + 1}</span>
+                </div>
+            {/each}
+        </div>
+    </div>
+    <div class="box-border flex justify-center items-center mb-4 gap-1 h-fit flex-wrap">
+        {#each alphabet as letter}
+            <button class="w-6 h-8 bg-violet-500 text-white" on:click={(event) => letterPress(letter, event.currentTarget as HTMLButtonElement)}><p class="w-full h-full flex justify-center items-center text-center">{letter}</p></button>
         {/each}
     </div>
     <div class="box-border flex justify-center items-start flex-col gap-1">
