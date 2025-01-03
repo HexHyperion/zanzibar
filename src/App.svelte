@@ -37,7 +37,7 @@
 
     function checkFilledRow(input: HTMLInputElement) {
         if (input.parentElement) {
-            const inputs = input.parentElement.getElementsByTagName("input");
+            const inputs = input.parentElement.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
             for (let i = 0; i < inputs.length; i++) {
                 if (inputs[i].value.length <= 0) {
                     return false;
@@ -51,7 +51,7 @@
 
     function checkCorrectRow(input: HTMLInputElement) {
         if (input.parentElement) {
-            const inputs = input.parentElement.getElementsByTagName("input");
+            const inputs = input.parentElement.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
             for (let i = 0; i < inputs.length; i++) {
                 if (inputs[i].value.toUpperCase() != inputs[i].dataset.letter) {
                     return false;
@@ -74,8 +74,23 @@
     }
 
 
+    function checkLetterExisting(button: HTMLButtonElement) {
+        const inputs = document.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
+        console.log(inputs);
+            
+        for (let i = 0; i < inputs.length; i++) {
+            if (inputs[i].dataset.letter == button.textContent) {
+                return;
+            }
+        }
+        button.classList.remove("bg-violet-500");
+        button.classList.add("bg-neutral-900");
+        button.disabled = true;
+    }
+
+
     function letterPress(letter: string, button: HTMLButtonElement) {
-        const inputs = document.getElementsByTagName("input");
+        const inputs = document.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
         for (let i = 0; i < inputs.length; i++) {
             if (inputs[i].dataset.letter == letter) {
                 inputs[i].value = letter;
@@ -99,7 +114,7 @@
             <div class="flex gap-1 items-center">
                 <p class="text-white text-xl mr-3">{index+1}.</p>
                 {#each word[0] as letter}
-                    <input class="w-10 h-10 text-center text-2xl bg-neutral-900"
+                    <input class="w-10 h-10 text-center text-2xl bg-neutral-900 crossword-input"
                         type="text"
                         maxlength="1"
                         autocapitalize="off"
@@ -129,6 +144,12 @@
                             else if (e.key == "ArrowRight") {
                                 ((e.target as HTMLInputElement).nextElementSibling as HTMLInputElement)?.focus();
                             }
+                            else if (e.key == "ArrowUp") {
+                                ((e.target as HTMLInputElement).parentElement?.previousElementSibling?.children[1] as HTMLInputElement)?.focus();
+                            }
+                            else if (e.key == "ArrowDown") {
+                                ((e.target as HTMLInputElement).parentElement?.nextElementSibling?.children[1] as HTMLInputElement)?.focus();
+                            }
                         }}
                     >
                 {/each}
@@ -140,7 +161,7 @@
             <!-- For now, small test -->
             {#each Array(9) as _, i}
                 <div class="relative">
-                    <input class="w-10 h-10 text-center text-2xl bg-neutral-900" type="text" maxlength="1" readonly>
+                    <input class="w-10 h-10 text-center text-2xl bg-neutral-900 password-input" type="text" maxlength="1" readonly>
                     <span class="absolute bottom-1 left-1 text-xs text-neutral-400">{i + 1}</span>
                 </div>
             {/each}
@@ -148,7 +169,7 @@
     </div>
     <div class="box-border flex justify-center items-center mb-4 gap-1 h-fit flex-wrap">
         {#each alphabet as letter}
-            <button class="w-6 h-8 bg-violet-500 text-white" on:click={(event) => letterPress(letter, event.currentTarget as HTMLButtonElement)}><p class="w-full h-full flex justify-center items-center text-center">{letter}</p></button>
+            <button class="w-6 h-8 bg-violet-500 text-white alphabet-button" on:click={(event) => letterPress(letter, event.currentTarget as HTMLButtonElement)} on:load={(event) => checkLetterExisting(event.currentTarget as HTMLButtonElement)}><p class="w-full h-full flex justify-center items-center text-center">{letter}</p></button>
         {/each}
     </div>
     <div class="box-border flex justify-center items-start flex-col gap-1">
