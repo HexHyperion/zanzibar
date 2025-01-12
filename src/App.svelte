@@ -6,6 +6,8 @@
 
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
+    let maxLength = 0;
+
     async function fetchData() {
         const fetchedWord = await fetch(wordEndpoint);
         const stringWord: string = await fetchedWord.json();
@@ -31,7 +33,11 @@
     async function getSeven() {
         const words = [];
         for (let i = 0; i < 7; i++) {
-            words.push(await getWord());
+            const word = await getWord();
+            words.push(word);
+            if (word[0].length > maxLength) {
+                maxLength = word[0].length;
+            }
         }
         return words;
     }
@@ -84,7 +90,7 @@
         }
 
         if (!lettersInWords.has(letter)) {
-            console.log(`Letter ${letter} not in words`);
+            // console.log(`Letter ${letter} not in words`);
             button.disabled = true;
             button.classList.remove("bg-violet-500");
             button.classList.add("bg-neutral-900");
@@ -104,6 +110,34 @@
         button.classList.remove("bg-violet-500");
         button.classList.add("bg-neutral-900");
         button.disabled = true;
+        checkAllLettersVisible();
+    }
+
+
+    function checkAllLettersVisible() {
+        const buttons = document.querySelectorAll(".alphabet-button") as NodeListOf<HTMLButtonElement>;
+        buttons.forEach(button => {
+            const letter = button.textContent as string;
+            const inputs = document.querySelectorAll(`.crossword-input[data-letter="${letter}"]`) as NodeListOf<HTMLInputElement>;
+            let allVisible = true;
+            inputs.forEach(input => {
+                if (input.value.toUpperCase() !== letter) {
+                    allVisible = false;
+                }
+            });
+            if (allVisible) {
+                button.disabled = true;
+                button.classList.remove("bg-violet-500");
+                button.classList.add("bg-neutral-900");
+                button.style.opacity = "0.5";
+            }
+            else {
+                button.disabled = false;
+                button.classList.remove("bg-neutral-900");
+                button.classList.add("bg-violet-500");
+                button.style.opacity = "1";
+            }
+        });
     }
 
 
@@ -112,6 +146,7 @@
         buttons.forEach(button => {
             checkLetterExisting(button, button.textContent as string);
         });
+        checkAllLettersVisible();
     });
 </script>
 
@@ -134,7 +169,10 @@
                         autocomplete="off"
                         spellcheck="false"
                         data-letter={letter.toUpperCase()}
-                        on:input={(e) => ((e.target as HTMLInputElement).nextElementSibling as HTMLInputElement)?.focus()}
+                        on:input={(e) => {
+                            ((e.target as HTMLInputElement).nextElementSibling as HTMLInputElement)?.focus();
+                            checkAllLettersVisible();
+                        }}
                         on:keydown={(e) => {
                             // Gotta love TypeScript inside HTML inside Svelte
                             if (e.key == "Backspace" && !(e.target as HTMLInputElement).readOnly) {
@@ -162,8 +200,12 @@
                             else if (e.key == "ArrowDown") {
                                 ((e.target as HTMLInputElement).parentElement?.nextElementSibling?.children[1] as HTMLInputElement)?.focus();
                             }
+                            checkAllLettersVisible();
                         }}
                     >
+                {/each}
+                {#each Array(maxLength - word[0].length) as _}
+                    <div class="w-10 h-10 bg-neutral-950"></div>
                 {/each}
             </div>
         {/each}
