@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { onMount, tick } from "svelte";
+
     const wordEndpoint = "https://random-word-api.herokuapp.com/word";
     const definitionEndpoint = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 
@@ -33,7 +35,7 @@
         }
         return words;
     }
-    
+
 
     function checkFilledRow(input: HTMLInputElement) {
         if (input.parentElement) {
@@ -74,18 +76,20 @@
     }
 
 
-    function checkLetterExisting(button: HTMLButtonElement) {
+    function checkLetterExisting(button: HTMLButtonElement, letter: string) {
         const inputs = document.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
-        console.log(inputs);
-            
+        const lettersInWords = new Set<string>();
         for (let i = 0; i < inputs.length; i++) {
-            if (inputs[i].dataset.letter == button.textContent) {
-                return;
-            }
+            lettersInWords.add(inputs[i].dataset.letter ?? "");
         }
-        button.classList.remove("bg-violet-500");
-        button.classList.add("bg-neutral-900");
-        button.disabled = true;
+
+        if (!lettersInWords.has(letter)) {
+            console.log(`Letter ${letter} not in words`);
+            button.disabled = true;
+            button.classList.remove("bg-violet-500");
+            button.classList.add("bg-neutral-900");
+            button.style.opacity = "0.5";
+        }
     }
 
 
@@ -99,8 +103,16 @@
         }
         button.classList.remove("bg-violet-500");
         button.classList.add("bg-neutral-900");
-        button.disabled = true;     // untested
+        button.disabled = true;
     }
+
+
+    onMount(() => {
+        const buttons = document.querySelectorAll(".alphabet-button") as NodeListOf<HTMLButtonElement>;
+        buttons.forEach(button => {
+            checkLetterExisting(button, button.textContent as string);
+        });
+    });
 </script>
 
 
@@ -112,7 +124,7 @@
     <div class="box-border flex items-start justify-center flex-col mb-4 gap-1 w-fit">
         {#each words as word, index}
             <div class="flex gap-1 items-center">
-                <p class="text-white text-xl mr-3">{index+1}.</p>
+                <p class="text-white text-xl mr-3 w-5">{index+1}.</p>
                 {#each word[0] as letter}
                     <input class="w-10 h-10 text-center text-2xl bg-neutral-900 crossword-input"
                         type="text"
@@ -125,7 +137,7 @@
                         on:input={(e) => ((e.target as HTMLInputElement).nextElementSibling as HTMLInputElement)?.focus()}
                         on:keydown={(e) => {
                             // Gotta love TypeScript inside HTML inside Svelte
-                            if (e.key == "Backspace") {
+                            if (e.key == "Backspace" && !(e.target as HTMLInputElement).readOnly) {
                                 (e.target as HTMLInputElement).value = "";
                                 (e.target as HTMLInputElement).focus();
                             }
@@ -169,12 +181,18 @@
     </div>
     <div class="box-border flex justify-center items-center mb-4 gap-1 h-fit flex-wrap">
         {#each alphabet as letter}
-            <button class="w-6 h-8 bg-violet-500 text-white alphabet-button" on:click={(event) => letterPress(letter, event.currentTarget as HTMLButtonElement)} on:load={(event) => checkLetterExisting(event.currentTarget as HTMLButtonElement)}><p class="w-full h-full flex justify-center items-center text-center">{letter}</p></button>
+            <button id="button-letter-{letter}" class="w-6 h-8 bg-violet-500 text-white alphabet-button" on:click={(event) => letterPress(letter, event.currentTarget as HTMLButtonElement)}><p class="w-full h-full flex justify-center items-center text-center">{letter}</p></button>
         {/each}
     </div>
     <div class="box-border flex justify-center items-start flex-col gap-1">
         {#each words as wordDef, index}
-            <p class="text-white">{index+1}. {wordDef[1]}</p>
+            <p class="text-white text-left">{index+1}. {wordDef[1]}</p>
         {/each}
     </div>
+    {#each alphabet as letter}
+        <!-- That's cool -->
+        {#await tick()}
+            {checkLetterExisting(document.getElementById(`button-letter-${letter}`) as HTMLButtonElement, letter)}
+        {/await}
+    {/each}
 {/await}
