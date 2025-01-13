@@ -7,6 +7,7 @@
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
     let maxLength = 0;
+    let password = "";
 
     async function fetchData() {
         const fetchedWord = await fetch(wordEndpoint);
@@ -19,6 +20,19 @@
         return [stringWord, stringDefinition];
     }
 
+    
+    async function getPassword() {
+        let [word, _] = await fetchData();
+        while (word == null) {
+            [word, _] = await fetchData();
+        }
+        return word[0] as string;
+    }
+
+
+    async function getWordsWithLetters() {
+        // get words containing letters from the password
+    }
 
     async function getWord() {
         let [word, definition] = await fetchData();
