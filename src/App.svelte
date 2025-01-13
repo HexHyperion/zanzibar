@@ -34,10 +34,14 @@
 
 {#await getSeven()}
     <div class="box-border flex justify-center items-center">
-        <h1 class="text-white">Loading...</h1>
+        <h1 class="text-white">Fetching words...</h1>
     </div>
 {:then words}
-    {#await generatePassword(stripDefinition(words)) then password}
+    {#await generatePassword(stripDefinition(words))}
+        <div class="box-border flex justify-center items-center">
+            <h1 class="text-white">Generating password...</h1>
+        </div>
+    {:then password}
         <div class="box-border flex items-start justify-center flex-col mb-4 gap-1 w-fit">
             {#each words as word, index}
                 <div class="flex gap-1 items-center">

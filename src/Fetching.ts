@@ -66,6 +66,14 @@ export async function generatePassword(words: string[]) {
     while (!checkPasswordIncluded(letterCounts, password)) {
         password = await getPassword();
     }
+
+    for (let i = 0; i < password.length; i++) {
+        const positionsLeft = letterPositions.get(password[i]);
+        while (positionsLeft) {
+            // randomly number the positions of the letter
+        }
+    }
+
     return password;    // for now, later it'll generate the numbers and the password field
 }
 
