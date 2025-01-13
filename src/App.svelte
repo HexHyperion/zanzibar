@@ -7,7 +7,7 @@
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
     let maxLength = 0;
-    let password = "";
+    let mainWord = "";
 
     async function fetchData() {
         const fetchedWord = await fetch(wordEndpoint);
@@ -55,6 +55,38 @@
             }
         }
         return words;
+    }
+
+
+    async function generatePassword(words: string[]) {
+        const letterCounts = new Map<string, number>();
+        const letterPositions = new Map<string, Set<[number, number]>>();
+        words.forEach((word, index) => {
+            for (let i = 0; i < word.length; i++) {
+                letterCounts.set(word[i], (letterCounts.get(word[i]) ?? 0) + 1);
+                letterPositions.set(word[i], (letterPositions.get(word[i]) ?? new Set()).add([index,i]));   // Positions are [wordNumber, positionInWord]
+            }
+        });
+
+        let password = await getPassword();
+        while (!checkPasswordIncluded(letterCounts, password)) {
+            password = await getPassword();
+        }
+        return password;    // for now, later it'll generate the numbers and the password field
+    }
+    
+    
+    function checkPasswordIncluded(letterCounts: Map<string,number>, password: string) {
+        const passwordLetterCounts = new Map<string, number>();
+        for (let i = 0; i < password.length; i++) {
+            passwordLetterCounts.set(password[i], (passwordLetterCounts.get(password[i]) ?? 0) + 1);
+        }
+        passwordLetterCounts.forEach((value, key) => {
+            if ((passwordLetterCounts.get(key) ?? 0) > (letterCounts.get(key) ?? 0)) {
+                return false;
+            }
+        });
+        return true;
     }
 
 
@@ -250,6 +282,7 @@
         <!-- That's cool -->
         {#await tick()}
             {checkLetterExisting(document.getElementById(`button-letter-${letter}`) as HTMLButtonElement, letter)}
+            
         {/await}
     {/each}
 {/await}
