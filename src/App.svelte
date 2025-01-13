@@ -20,7 +20,12 @@
         return [stringWord, stringDefinition];
     }
 
-    
+
+    // IDEA FOR THE ALGORITHM:
+    // fetch all words normally
+    // then keep fetching the password until all letters of the fetched password are in the crossword in the right count
+    // if more letter instances in the crossword randomize which to mark with number, else mark the only available one
+
     async function getPassword() {
         let [word, _] = await fetchData();
         while (word == null) {
@@ -29,10 +34,6 @@
         return word[0] as string;
     }
 
-
-    async function getWordsWithLetters() {
-        // get words containing letters from the password
-    }
 
     async function getWord() {
         let [word, definition] = await fetchData();
