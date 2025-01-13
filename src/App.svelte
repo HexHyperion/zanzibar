@@ -1,193 +1,17 @@
 <script lang="ts">
     import { onMount, tick } from "svelte";
-
-    const wordEndpoint = "https://random-word-api.herokuapp.com/word";
-    const definitionEndpoint = "https://api.dictionaryapi.dev/api/v2/entries/en/";
+    import { getSeven, generatePassword, maxLength } from "./Fetching";
+    import { checkLetterExisting, checkAllLettersVisible, letterPress } from "./Letters";
+    import { checkFilledRow, checkCorrectRow, setSuccess } from "./Words";
 
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-
-    let maxLength = 0;
-
-    async function fetchData() {
-        const fetchedWord = await fetch(wordEndpoint);
-        const stringWord: string = await fetchedWord.json();
-
-        const fetchedDefinition = await fetch(definitionEndpoint + stringWord);
-        const definitionArray: unknown = await fetchedDefinition.json();
-        const stringDefinition: string | null = definitionArray instanceof Array ? definitionArray[0].meanings[0].definitions[0].definition : null;     // If no definition the API returns an object with an error message instead of an array, clever way to check if the definition is null
-
-        return [stringWord, stringDefinition];
-    }
-
 
     // IDEA FOR THE ALGORITHM:
     // fetch all words normally
     // then keep fetching the password until all letters of the fetched password are in the crossword in the right count
     // if more letter instances in the crossword randomize which to mark with number, else mark the only available one
 
-    async function getPassword() {
-        let [word, _] = await fetchData();
-        while (word == null) {
-            [word, _] = await fetchData();
-        }
-        return word[0] as string;
-    }
-
-
-    async function getWord() {
-        let [word, definition] = await fetchData();
-        while (word == null || definition == null) {
-            [word, definition] = await fetchData();
-        }
-
-        return [word[0] as string, definition as string];
-    }
-
-
-    async function getSeven() {
-        const words = [];
-        for (let i = 0; i < 7; i++) {
-            const word = await getWord();
-            words.push(word);
-            if (word[0].length > maxLength) {
-                maxLength = word[0].length;
-            }
-        }
-        return words;
-    }
-
-
-    async function generatePassword(words: string[]) {
-        const letterCounts = new Map<string, number>();
-        const letterPositions = new Map<string, Set<[number, number]>>();
-        words.forEach((word, index) => {
-            for (let i = 0; i < word.length; i++) {
-                letterCounts.set(word[i], (letterCounts.get(word[i]) ?? 0) + 1);
-                letterPositions.set(word[i], (letterPositions.get(word[i]) ?? new Set()).add([index,i]));   // Positions are [wordNumber, positionInWord]
-            }
-        });
-
-        let password = await getPassword();
-        while (!checkPasswordIncluded(letterCounts, password)) {
-            password = await getPassword();
-        }
-        return password;    // for now, later it'll generate the numbers and the password field
-    }
-    
-    
-    function checkPasswordIncluded(letterCounts: Map<string,number>, password: string) {
-        let isOK = true;
-        const passwordLetterCounts = new Map<string, number>();
-        for (let i = 0; i < password.length; i++) {
-            passwordLetterCounts.set(password[i], (passwordLetterCounts.get(password[i]) ?? 0) + 1);
-        }
-        passwordLetterCounts.forEach((value, key) => {
-            if ((passwordLetterCounts.get(key) ?? 0) > (letterCounts.get(key) ?? 0)) {
-                isOK = false;
-            }
-        });
-        return isOK;
-    }
-
-
-    function checkFilledRow(input: HTMLInputElement) {
-        if (input.parentElement) {
-            const inputs = input.parentElement.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
-            for (let i = 0; i < inputs.length; i++) {
-                if (inputs[i].value.length <= 0) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        else return false;
-    }
-
-
-    function checkCorrectRow(input: HTMLInputElement) {
-        if (input.parentElement) {
-            const inputs = input.parentElement.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
-            for (let i = 0; i < inputs.length; i++) {
-                if (inputs[i].value.toUpperCase() != inputs[i].dataset.letter) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        else return false;
-    }
-
-
-    function setSuccess(input: HTMLInputElement) {
-        if (input.parentElement) {
-            const inputs = input.parentElement.getElementsByTagName("input");
-            for (let i = 0; i < inputs.length; i++) {
-                inputs[i].style.backgroundColor = "rgba(0, 255, 196, 0.5)";
-                inputs[i].readOnly = true;
-            }
-        }
-    }
-
-
-    function checkLetterExisting(button: HTMLButtonElement, letter: string) {
-        const inputs = document.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
-        const lettersInWords = new Set<string>();
-        for (let i = 0; i < inputs.length; i++) {
-            lettersInWords.add(inputs[i].dataset.letter ?? "");
-        }
-
-        if (!lettersInWords.has(letter)) {
-            // console.log(`Letter ${letter} not in words`);
-            button.disabled = true;
-            button.classList.remove("bg-violet-500");
-            button.classList.add("bg-neutral-900");
-            button.style.opacity = "0.5";
-        }
-    }
-
-
-    function letterPress(letter: string, button: HTMLButtonElement) {
-        const inputs = document.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
-        for (let i = 0; i < inputs.length; i++) {
-            if (inputs[i].dataset.letter == letter) {
-                inputs[i].value = letter;
-                inputs[i].readOnly = true;
-            }
-        }
-        button.classList.remove("bg-violet-500");
-        button.classList.add("bg-neutral-900");
-        button.disabled = true;
-        checkAllLettersVisible();
-    }
-
-
-    function checkAllLettersVisible() {
-        const buttons = document.querySelectorAll(".alphabet-button") as NodeListOf<HTMLButtonElement>;
-        buttons.forEach(button => {
-            const letter = button.textContent as string;
-            const inputs = document.querySelectorAll(`.crossword-input[data-letter="${letter}"]`) as NodeListOf<HTMLInputElement>;
-            let allVisible = true;
-            inputs.forEach(input => {
-                if (input.value.toUpperCase() !== letter) {
-                    allVisible = false;
-                }
-            });
-            if (allVisible) {
-                button.disabled = true;
-                button.classList.remove("bg-violet-500");
-                button.classList.add("bg-neutral-900");
-                button.style.opacity = "0.5";
-            }
-            else {
-                button.disabled = false;
-                button.classList.remove("bg-neutral-900");
-                button.classList.add("bg-violet-500");
-                button.style.opacity = "1";
-            }
-        });
-    }
-
-
+    // Returns a pure list of crossword's words
     function stripDefinition(array: Array<Array<string>>) {
         let returnArray = [] as Array<string>;
         array.forEach(wordWithDef => {
@@ -197,6 +21,7 @@
     }
 
 
+    // Executes after the component is fully loaded
     onMount(() => {
         const buttons = document.querySelectorAll(".alphabet-button") as NodeListOf<HTMLButtonElement>;
         buttons.forEach(button => {
