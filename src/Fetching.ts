@@ -55,6 +55,7 @@ export async function getSeven() {
 export async function generatePassword(words: string[]) {
     const letterCounts = new Map<string, number>();
     const letterPositions = new Map<string, Set<[number, number]>>();
+    const wordsOnly = words.map(word => word[0]);
     words.forEach((word, index) => {
         for (let i = 0; i < word.length; i++) {
             letterCounts.set(word[i], (letterCounts.get(word[i]) ?? 0) + 1);
@@ -67,12 +68,34 @@ export async function generatePassword(words: string[]) {
         password = await getPassword();
     }
 
+    const passwordLetterCounts = new Map<string, number>();
+    Array.from(password).forEach(letter => {
+        passwordLetterCounts.set(letter, (passwordLetterCounts.get(letter) ?? 0) + 1);
+    });
+    console.log(passwordLetterCounts);
+    console.log(letterCounts);
+    console.log(letterPositions);
+    
+    
+    const finalPositions = new Map<string, Set<[number, number]>>();
     for (let i = 0; i < password.length; i++) {
-        const positionsLeft = letterPositions.get(password[i]);
-        while (positionsLeft) {
-            // randomly number the positions of the letter
+        const letter = password[i];
+        const letterCount = passwordLetterCounts.get(letter) ?? 0;
+
+        // TODO FIX THE LOOP, IT DUPLICATES THE POSITIONS
+        for (let j = 0; j < letterCount; j++) {
+            const randomIndex = Math.floor(Math.random() * (letterPositions.get(letter)?.size ?? 0));
+            const randomPosition = Array.from(letterPositions.get(letter) ?? new Set())[randomIndex] as [number, number];
+            finalPositions.set(letter, (finalPositions.get(letter) ?? new Set()).add(randomPosition));
+            console.log(`Letter: ${letter}, Position: ${randomPosition}, Iteration: ${j}`);
         }
     }
+
+    finalPositions.forEach((value, key) => {
+        console.log(key, value);
+    });
+    console.log(finalPositions);
+    
 
     return password;    // for now, later it'll generate the numbers and the password field
 }

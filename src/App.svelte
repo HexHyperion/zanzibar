@@ -12,12 +12,8 @@
     // if more letter instances in the crossword randomize which to mark with number, else mark the only available one
 
     // Returns a pure list of crossword's words
-    function stripDefinition(array: Array<Array<string>>) {
-        let returnArray = [] as Array<string>;
-        array.forEach(wordWithDef => {
-            returnArray.push(wordWithDef[0]);
-        });
-        return returnArray;
+    export function stripDefinition(array: Array<Array<string>>) {
+        return array.map(word => word[0]);
     }
 
 
@@ -44,7 +40,7 @@
     {:then password}
         <div class="box-border flex items-start justify-center flex-col mb-4 gap-1 w-fit">
             {#each words as word, index}
-                <div class="flex gap-1 items-center">
+                <div class="flex gap-1 items-center crossword-row">
                     <p class="text-white text-xl mr-3 w-5">{index+1}.</p>
                     {#each word[0] as letter}
                         <input class="w-10 h-10 text-center text-2xl bg-neutral-900 crossword-input"
