@@ -8,14 +8,12 @@ export function checkLetterExisting(button: HTMLButtonElement, letter: string) {
     }
 
     if (!lettersInWords.has(letter)) {
-        // console.log(`Letter ${letter} not in words`);
         button.disabled = true;
         button.classList.remove("bg-violet-500");
         button.classList.add("bg-neutral-900");
         button.style.opacity = "0.5";
     }
 }
-
 
 // Handles the press of the letter button - uncover all instances and disable
 export function letterPress(letter: string, button: HTMLButtonElement) {
@@ -31,7 +29,6 @@ export function letterPress(letter: string, button: HTMLButtonElement) {
     button.disabled = true;
     checkAllLettersVisible();
 }
-
 
 // Checks if all instances of the letter are visible (as values)
 // If so, disables and greys out the button
