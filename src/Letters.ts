@@ -1,4 +1,7 @@
 // Checks on the app load if any letters are not present in the crossword
+
+import { checkPassword } from "./Words";
+
 // If so, disables their buttons
 export function checkLetterExisting(button: HTMLButtonElement, letter: string) {
     const inputs = document.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
@@ -18,16 +21,22 @@ export function checkLetterExisting(button: HTMLButtonElement, letter: string) {
 // Handles the press of the letter button - uncover all instances and disable
 export function letterPress(letter: string, button: HTMLButtonElement) {
     const inputs = document.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
+    const passwordInputs = document.querySelectorAll(".password-input") as NodeListOf<HTMLInputElement>;
     for (let i = 0; i < inputs.length; i++) {
         if (inputs[i].dataset.letter == letter) {
             inputs[i].value = letter;
             inputs[i].readOnly = true;
+
+            if (inputs[i].parentElement?.children[1].textContent) {
+                passwordInputs[parseInt(inputs[i].parentElement?.children[1].textContent ?? "") - 1].value = letter;
+            }
         }
     }
     button.classList.remove("bg-violet-500");
     button.classList.add("bg-neutral-900");
     button.disabled = true;
     checkAllLettersVisible();
+    checkPassword();
 }
 
 // Checks if all instances of the letter are visible (as values)

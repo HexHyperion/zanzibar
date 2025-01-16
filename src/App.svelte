@@ -2,7 +2,7 @@
     import { onMount, tick } from "svelte";
     import { getSeven, generatePassword, maxLength } from "./Fetching";
     import { checkLetterExisting, checkAllLettersVisible, letterPress } from "./Letters";
-    import { checkFilledRow, checkCorrectRow, setSuccess } from "./Words";
+    import { checkFilledRow, checkCorrectRow, setSuccess, checkPassword } from "./Words";
 
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -19,6 +19,23 @@
         });
         checkAllLettersVisible();
     });
+
+    function focusNextInput(current: HTMLInputElement, direction: 'next' | 'previous') {
+        let nextElement: HTMLInputElement | null = null;
+        if (direction === 'next') {
+            nextElement = current.parentElement?.nextElementSibling?.querySelector('.crossword-input') as HTMLInputElement;
+        } else {
+            nextElement = current.parentElement?.previousElementSibling?.querySelector('.crossword-input') as HTMLInputElement;
+        }
+        while (nextElement && nextElement.readOnly) {
+            if (direction === 'next') {
+                nextElement = nextElement.parentElement?.nextElementSibling?.querySelector('.crossword-input') as HTMLInputElement;
+            } else {
+                nextElement = nextElement.parentElement?.previousElementSibling?.querySelector('.crossword-input') as HTMLInputElement;
+            }
+        }
+        nextElement?.focus();
+    }
 </script>
 
 
@@ -47,34 +64,36 @@
                                 spellcheck="false"
                                 data-letter={letter.toUpperCase()}
                                 on:input={(e) => {
-                                    ((e.target as HTMLInputElement).parentElement?.nextElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus();
+                                    const target = e.target as HTMLInputElement;
+                                    target.value = target.value.toUpperCase();
+                                    focusNextInput(target, 'next');
                                     checkAllLettersVisible();
                                 }}
                                 on:keydown={(e) => {
-                                    if (e.key == "Backspace" && !(e.target as HTMLInputElement).readOnly) {
-                                        (e.target as HTMLInputElement).value = "";
-                                        (e.target as HTMLInputElement).focus();
+                                    const target = e.target as HTMLInputElement;
+                                    if (e.key == "Backspace" && !target.readOnly) {
+                                        target.value = "";
+                                        target.focus();
                                     }
-                                    else if (e.key == "Enter"
-                                        && e.target
-                                        && checkFilledRow(e.target as HTMLInputElement)
-                                    ) {
-                                        if (checkCorrectRow(e.target as HTMLInputElement)) {
-                                            setSuccess(e.target as HTMLInputElement);
+                                    else if (e.key == "Enter" && target && checkFilledRow(target)) {
+                                        if (checkCorrectRow(target)) {
+                                            setSuccess(target);
                                         }
-                                        ((e.target as HTMLInputElement).parentElement?.parentElement?.nextElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus();
+                                        const nextRow = target.parentElement?.parentElement?.nextElementSibling;
+                                        const firstInputInNextRow = nextRow?.querySelector('.crossword-input') as HTMLInputElement;
+                                        firstInputInNextRow?.focus();
                                     }
                                     else if (e.key == "ArrowLeft") {
-                                        ((e.target as HTMLInputElement).parentElement?.previousElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus();
+                                        focusNextInput(target, 'previous');
                                     }
                                     else if (e.key == "ArrowRight") {
-                                        ((e.target as HTMLInputElement).parentElement?.nextElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus();
+                                        focusNextInput(target, 'next');
                                     }
                                     else if (e.key == "ArrowUp") {
-                                        ((e.target as HTMLInputElement).parentElement?.parentElement?.previousElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus();
+                                        ((target.parentElement?.parentElement?.previousElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus());
                                     }
                                     else if (e.key == "ArrowDown") {
-                                        ((e.target as HTMLInputElement).parentElement?.parentElement?.nextElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus();
+                                        ((target.parentElement?.parentElement?.nextElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus());
                                     }
                                     checkAllLettersVisible();
                                 }}
@@ -89,7 +108,7 @@
             {/each}
         </div>
         <div class="box-border flex justify-center items-center mb-4 gap-1 h-fit">
-            <div class="flex gap-1 items-center">
+            <div class="flex gap-1 items-center border-violet-500 border-2 rounded-md p-1">
                 {#each password as letter, i}
                     <div class="relative">
                         <input class="w-10 h-10 text-center text-2xl bg-neutral-900 password-input" type="text" maxlength="1" data-letter="{letter}" readonly placeholder="{letter.toUpperCase()}">
@@ -125,6 +144,20 @@
                     const spanElement = inputElement.parentElement.querySelector('span');
                     if (spanElement) {
                         spanElement.textContent = `${arr[2]}`;
+                        const passwordInputs = document.querySelectorAll('.password-input');
+                        inputElement.addEventListener("input", e => {
+                            if (inputElement.value.toUpperCase() == inputElement.dataset.letter) {
+                                console.log(inputElement.value.toUpperCase(), inputElement.dataset.letter);
+                                (passwordInputs[arr[2]-1] as HTMLInputElement).value = (passwordInputs[arr[2]-1] as HTMLInputElement).dataset.letter?.toUpperCase() ?? "";
+                            }
+                            checkPassword();
+                        });
+                        inputElement.addEventListener("focusout", e => {
+                            if (inputElement.value.toUpperCase() != inputElement.dataset.letter) {
+                                (passwordInputs[arr[2]-1] as HTMLInputElement).value = "";
+                            }
+                            checkPassword();
+                        });
                     }
                 }
             });

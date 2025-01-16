@@ -31,8 +31,23 @@ export function setSuccess(input: HTMLInputElement) {
     if (input.parentElement?.parentElement) {
         const inputs = input.parentElement.parentElement.getElementsByTagName("input");
         for (let i = 0; i < inputs.length; i++) {
-            inputs[i].style.backgroundColor = "rgba(0, 255, 196, 0.5)";
+            inputs[i].style.backgroundColor = "#22531e";
             inputs[i].readOnly = true;
         }
     }
+}
+
+// Checks if the password is filled correctly
+export function checkPassword() {
+    const passwordInputs = document.querySelectorAll(".password-input") as NodeListOf<HTMLInputElement>;
+    for (let i = 0; i < passwordInputs.length; i++) {
+        if (!passwordInputs[i].value) {
+            return;
+        }
+    }
+    passwordInputs.forEach(input => {
+        input.style.color = "#5af04c";
+        input.style.backgroundColor = "#22531e";
+        input.readOnly = true;
+    });
 }
