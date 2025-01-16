@@ -37,7 +37,7 @@
         <div class="box-border flex justify-center items-center">
             <h1 class="text-white">Generating password...</h1>
         </div>
-    {:then password}
+    {:then {password, finalPositions}}
         <div class="box-border flex items-start justify-center flex-col mb-4 gap-1 w-fit">
             {#each words as word, index}
                 <div class="flex gap-1 items-center crossword-row">
@@ -119,6 +119,28 @@
                 {checkLetterExisting(document.getElementById(`button-letter-${letter}`) as HTMLButtonElement, letter)}
             {/await}
         {/each}
+        {#await tick()}
+        {finalPositions.forEach(position => {
+            // array [i][j] where i is the row and j is the column
+            const inputs: HTMLInputElement[][] = Array.from(document.querySelectorAll('.crossword-row')).map(row => Array.from(row.querySelectorAll('.crossword-input')));
+            position.forEach((arr) => {
+                // add little numbers like in password fields - the numbers are arr[2]
+                const inputElement = inputs[arr[0]][arr[1]];
+                inputElement.style.position = "relative";
+                const parentElement = inputElement.parentElement;
+                if (parentElement) {
+                    const wrapperDiv = document.createElement('div');
+                    wrapperDiv.className = 'relative';
+                    parentElement.replaceChild(wrapperDiv, inputElement);
+                    wrapperDiv.appendChild(inputElement);
+                    const spanElement = document.createElement('span');
+                    spanElement.className = 'absolute bottom-0 left-0 h-fit text-xs text-neutral-400';
+                    spanElement.textContent = `${arr[2]}`;
+                    wrapperDiv.appendChild(spanElement);
+                }
+            });
+        })}
+        {/await}
     {/await}
     {:catch}
         <div class="box-border flex justify-center items-center">

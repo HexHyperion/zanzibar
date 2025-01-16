@@ -29,6 +29,7 @@ export async function getPassword() {
 // Fetches words until the word has a definition
 export async function getWord() {
     let [word, definition] = await fetchData();
+    
     while (word == null || definition == null) {
         [word, definition] = await fetchData();
     }
@@ -63,7 +64,7 @@ export async function generatePassword(words: string[]) {
         }
     });
 
-    let password = await getPassword();
+    let password = await getPassword();    
     while (!checkPasswordIncluded(letterCounts, password)) {
         password = await getPassword();
     }
@@ -73,14 +74,14 @@ export async function generatePassword(words: string[]) {
         passwordLetterCounts.set(letter, (passwordLetterCounts.get(letter) ?? 0) + 1);
     }); 
     
-    const finalPositions = new Map<string, Set<[number, number]>>();
+    const finalPositions = new Map<string, Set<[number, number, number]>>(); // [wordNumber, positionInWord, positionInPassword]
     for (let i = 0; i < password.length; i++) {
         const letter = password[i];
         const letterCount = passwordLetterCounts.get(letter) ?? 0;
 
         const randomIndex = Math.floor(Math.random() * (letterPositions.get(letter)?.size ?? 0));
         const randomPosition = Array.from(letterPositions.get(letter) ?? new Set())[randomIndex] as [number, number];
-        finalPositions.set(letter, (finalPositions.get(letter) ?? new Set()).add(randomPosition));
+        finalPositions.set(letter, (finalPositions.get(letter) ?? new Set()).add([...randomPosition, i+1]));
     }
 
     // WON'T WORK BECAUSE IT'S EXECUTED BEFORE THE COMPONENT LOADS
@@ -102,7 +103,7 @@ export async function generatePassword(words: string[]) {
     console.log(finalPositions);
     
 
-    return password;    // for now, later it'll generate the numbers and the password field
+    return {password, finalPositions};
 }
 
 
