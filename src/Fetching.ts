@@ -71,29 +71,34 @@ export async function generatePassword(words: string[]) {
     const passwordLetterCounts = new Map<string, number>();
     Array.from(password).forEach(letter => {
         passwordLetterCounts.set(letter, (passwordLetterCounts.get(letter) ?? 0) + 1);
-    });
-    console.log(passwordLetterCounts);
-    console.log(letterCounts);
-    console.log(letterPositions);
-    
+    }); 
     
     const finalPositions = new Map<string, Set<[number, number]>>();
     for (let i = 0; i < password.length; i++) {
         const letter = password[i];
         const letterCount = passwordLetterCounts.get(letter) ?? 0;
 
-        // TODO FIX THE LOOP, IT DUPLICATES THE POSITIONS
-        for (let j = 0; j < letterCount; j++) {
-            const randomIndex = Math.floor(Math.random() * (letterPositions.get(letter)?.size ?? 0));
-            const randomPosition = Array.from(letterPositions.get(letter) ?? new Set())[randomIndex] as [number, number];
-            finalPositions.set(letter, (finalPositions.get(letter) ?? new Set()).add(randomPosition));
-            console.log(`Letter: ${letter}, Position: ${randomPosition}, Iteration: ${j}`);
-        }
+        const randomIndex = Math.floor(Math.random() * (letterPositions.get(letter)?.size ?? 0));
+        const randomPosition = Array.from(letterPositions.get(letter) ?? new Set())[randomIndex] as [number, number];
+        finalPositions.set(letter, (finalPositions.get(letter) ?? new Set()).add(randomPosition));
     }
 
-    finalPositions.forEach((value, key) => {
-        console.log(key, value);
-    });
+    // WON'T WORK BECAUSE IT'S EXECUTED BEFORE THE COMPONENT LOADS
+    // TODO MOVE IT TO THE COMPONENT AWAITING THE PASSWORD
+    // finalPositions.forEach((value, key) => {
+    //     const rows = document.querySelectorAll(".crossword-row");
+    //     console.log(rows);
+    //     rows.forEach((row, rIndex) => {
+    //         const cells = row.querySelectorAll(".crossword-input");
+    //         cells.forEach((cell, cIndex) => {
+    //             console.log(key, value);
+    //             if (value.has([rIndex, cIndex])) {
+    //                 (cell as HTMLInputElement).value = key;
+                    
+    //             }
+    //         })
+    //     });
+    // });
     console.log(finalPositions);
     
 

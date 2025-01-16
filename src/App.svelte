@@ -120,4 +120,8 @@
             {/await}
         {/each}
     {/await}
+    {:catch}
+        <div class="box-border flex justify-center items-center">
+            <h1 class="text-white">An error occurred while fetching the words.</h1>
+        </div>
 {/await}
