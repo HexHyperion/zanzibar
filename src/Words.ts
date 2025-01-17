@@ -144,3 +144,31 @@ export function checkRowsPasswordLetters() {
         });
     });
 }
+
+// Checks if all rows are correctly filled
+export function checkAllRowsCorrect() {
+    const rows = document.querySelectorAll(".crossword-row");
+    for (let i = 0; i < rows.length; i++) {
+        const inputs = rows[i].querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
+        for (let j = 0; j < inputs.length; j++) {
+            if (inputs[j].value.toUpperCase() !== inputs[j].dataset.letter) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+// Checks if all rows are filled
+export function checkAllRowsFilled() {
+    const rows = document.querySelectorAll(".crossword-row");
+    for (let i = 0; i < rows.length; i++) {
+        const inputs = rows[i].querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
+        for (let j = 0; j < inputs.length; j++) {
+            if (inputs[j].value.length <= 0) {
+                return false;
+            }
+        }
+    }
+    return true;
+}

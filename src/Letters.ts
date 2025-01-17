@@ -1,6 +1,7 @@
 // Checks on the app load if any letters are not present in the crossword
 
-import { checkCorrectRow, checkPassword, setSuccess, checkRowsPasswordLetters, checkFilledRow } from "./Words";
+import { checkCorrectRow, checkPassword, setSuccess, checkRowsPasswordLetters, checkFilledRow, checkAllRowsCorrect, checkAllRowsFilled } from "./Words";
+import { stopTimer } from "./Timer";
 
 // If so, disables their buttons
 export function checkLetterExisting(button: HTMLButtonElement, letter: string) {
@@ -48,6 +49,13 @@ export function letterPress(letter: string, button: HTMLButtonElement) {
             }
         }
     });
+
+    if (checkAllRowsFilled() && checkAllRowsCorrect()) {
+        if (stopTimer(checkAllRowsCorrect)) {
+            const winMessageEvent = new CustomEvent("winMessage");
+            document.dispatchEvent(winMessageEvent);
+        }
+    }
 }
 
 // Checks if all instances of the letter are visible (as values)
@@ -59,7 +67,7 @@ export function checkAllLettersVisible() {
         const inputs = document.querySelectorAll(`.crossword-input[data-letter="${letter}"]`) as NodeListOf<HTMLInputElement>;
         let allVisible = true;
         inputs.forEach(input => {
-            if (input.value.toUpperCase() !== letter) {
+            if (input.value.toUpperCase() != letter) {
                 allVisible = false;
             }
         });
