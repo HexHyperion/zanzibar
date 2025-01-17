@@ -70,20 +70,18 @@
                                     target.value = target.value.toUpperCase();
                                     focusNextInput(target, 'next');
                                     checkAllLettersVisible();
+                                    if (checkFilledRow(target)) {
+                                        if (checkCorrectRow(target)) {
+                                            setSuccess(target);
+                                        }
+                                        checkPassword();
+                                    }
                                 }}
                                 on:keydown={(e) => {
                                     const target = e.target as HTMLInputElement;
                                     if (e.key == "Backspace" && !target.readOnly) {
                                         target.value = "";
                                         target.focus();
-                                    }
-                                    else if (e.key == "Enter" && target && checkFilledRow(target)) {
-                                        if (checkCorrectRow(target)) {
-                                            setSuccess(target);
-                                        }
-                                        const nextRow = target.parentElement?.parentElement?.nextElementSibling;
-                                        const firstInputInNextRow = nextRow?.querySelector('.crossword-input') as HTMLInputElement;
-                                        firstInputInNextRow?.focus();
                                     }
                                     else if (e.key == "ArrowLeft") {
                                         focusNextInput(target, 'previous');
@@ -147,19 +145,19 @@
                         if (spanElement) {
                             spanElement.textContent = `${arr[2]}`;
                             const passwordInputs = document.querySelectorAll('.password-input');
-                            inputElement.addEventListener("input", e => {
-                                if (inputElement.value.toUpperCase() == inputElement.dataset.letter) {
-                                    (passwordInputs[arr[2]-1] as HTMLInputElement).value = (passwordInputs[arr[2]-1] as HTMLInputElement).dataset.letter?.toUpperCase() ?? "";
-                                    inputElement.readOnly = true;
-                                }
-                                checkPassword();
-                            });
-                            inputElement.addEventListener("focusout", e => {
-                                if (inputElement.value.toUpperCase() != inputElement.dataset.letter) {
-                                    (passwordInputs[arr[2]-1] as HTMLInputElement).value = "";
-                                }
-                                checkPassword();
-                            });
+                            // inputElement.addEventListener("input", e => {
+                            //     if (inputElement.value.toUpperCase() == inputElement.dataset.letter) {
+                            //         (passwordInputs[arr[2]-1] as HTMLInputElement).value = (passwordInputs[arr[2]-1] as HTMLInputElement).dataset.letter?.toUpperCase() ?? "";
+                            //         inputElement.readOnly = true;
+                            //     }
+                            //     checkPassword();
+                            // });
+                            // inputElement.addEventListener("focusout", e => {
+                            //     if (inputElement.value.toUpperCase() != inputElement.dataset.letter) {
+                            //         (passwordInputs[arr[2]-1] as HTMLInputElement).value = "";
+                            //     }
+                            //     checkPassword();
+                            // });
                         }
                     }
                 });

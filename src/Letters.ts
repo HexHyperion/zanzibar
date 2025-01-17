@@ -1,6 +1,6 @@
 // Checks on the app load if any letters are not present in the crossword
 
-import { checkCorrectRow, checkPassword, setSuccess, checkRowsPasswordLetters } from "./Words";
+import { checkCorrectRow, checkPassword, setSuccess, checkRowsPasswordLetters, checkFilledRow } from "./Words";
 
 // If so, disables their buttons
 export function checkLetterExisting(button: HTMLButtonElement, letter: string) {
@@ -41,8 +41,11 @@ export function letterPress(letter: string, button: HTMLButtonElement) {
     checkRowsPasswordLetters();
     
     document.querySelectorAll(".crossword-row").forEach(row => {
-        if (checkCorrectRow(row.querySelector(".crossword-input") as HTMLInputElement)) {
-            setSuccess(row.querySelector(".crossword-input") as HTMLInputElement);
+        const firstInput = row.querySelector(".crossword-input") as HTMLInputElement;
+        if (checkFilledRow(firstInput)) {
+            if (checkCorrectRow(firstInput)) {
+                setSuccess(firstInput);
+            }
         }
     });
 }

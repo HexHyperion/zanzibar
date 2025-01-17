@@ -7,6 +7,9 @@ export function checkFilledRow(input: HTMLInputElement) {
                 return false;
             }
         }
+        if (checkCorrectRow(inputs[0])) {
+            setSuccess(inputs[0]);
+        }
         return true;
     }
     else return false;
@@ -45,7 +48,23 @@ export function setSuccess(input: HTMLInputElement) {
             inputs[i].readOnly = true;
         }
         applyRotationAnimation(Array.from(inputs));
+        checkRowsPasswordLetters();
+        uncoverPasswordLetters(inputs);
     }
+}
+
+function uncoverPasswordLetters(inputs: HTMLCollectionOf<HTMLInputElement>) {
+    const passwordInputs = document.querySelectorAll(".password-input") as NodeListOf<HTMLInputElement>;
+    Array.from(inputs).forEach(input => {
+        const number = input.parentElement?.children[1].textContent;
+        if (number) {
+            const passwordInput = passwordInputs[parseInt(number) - 1];
+            if (input.value.toUpperCase() === passwordInput.dataset.letter?.toUpperCase()) {
+                passwordInput.value = passwordInput.dataset.letter?.toUpperCase() ?? "";
+                passwordInput.readOnly = true;
+            }
+        }
+    });
 }
 
 // Checks if the password is filled correctly
@@ -66,6 +85,27 @@ export function checkPassword() {
         parentElement.style.borderColor = "#5af04c";
     }
     applyRotationAnimation(Array.from(passwordInputs));
+    validatePassword();
+}
+
+function validatePassword() {
+    const passwordInputs = document.querySelectorAll(".password-input") as NodeListOf<HTMLInputElement>;
+    for (let i = 0; i < passwordInputs.length; i++) {
+        if (passwordInputs[i].value.toUpperCase() !== passwordInputs[i].dataset.letter?.toUpperCase()) {
+            return false;
+        }
+    }
+    passwordInputs.forEach(input => {
+        input.style.color = "#5af04c";
+        input.style.backgroundColor = "#22531e";
+        input.readOnly = true;
+    });
+    const parentElement = passwordInputs[0].parentElement?.parentElement;
+    if (parentElement) {
+        parentElement.style.borderColor = "#5af04c";
+    }
+    applyRotationAnimation(Array.from(passwordInputs));
+    return true;
 }
 
 // Uncover three random letters in each word
