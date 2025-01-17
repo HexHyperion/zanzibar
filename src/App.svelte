@@ -1,146 +1,35 @@
 <script lang="ts">
     import { onMount, tick } from "svelte";
-
-    const wordEndpoint = "https://random-word-api.herokuapp.com/word";
-    const definitionEndpoint = "https://api.dictionaryapi.dev/api/v2/entries/en/";
+    import { getSeven, generatePassword, maxLength } from "./Fetching";
+    import { checkLetterExisting, checkAllLettersVisible, letterPress } from "./Letters";
+    import { checkFilledRow, checkCorrectRow, setSuccess, checkPassword, uncoverRandomLetters } from "./Words";
 
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-    let maxLength = 0;
-
-    async function fetchData() {
-        const fetchedWord = await fetch(wordEndpoint);
-        const stringWord: string = await fetchedWord.json();
-
-        const fetchedDefinition = await fetch(definitionEndpoint + stringWord);
-        const definitionArray: unknown = await fetchedDefinition.json();
-        const stringDefinition: string | null = definitionArray instanceof Array ? definitionArray[0].meanings[0].definitions[0].definition : null;     // If no definition the API returns an object with an error message instead of an array, clever way to check if the definition is null
-
-        return [stringWord, stringDefinition];
+    // Returns a pure list of crossword's words
+    export function stripDefinition(array: Array<Array<string>>) {
+        return array.map(word => word[0]);
     }
 
-
-    async function getWord() {
-        let [word, definition] = await fetchData();
-        while (word == null || definition == null) {
-            [word, definition] = await fetchData();
+    // Focuses on the next available input field
+    function focusNextInput(current: HTMLInputElement, direction: 'next' | 'previous') {
+        let nextElement: HTMLInputElement | null = null;
+        if (direction === 'next') {
+            nextElement = current.parentElement?.nextElementSibling?.querySelector('.crossword-input') as HTMLInputElement;
+        } else {
+            nextElement = current.parentElement?.previousElementSibling?.querySelector('.crossword-input') as HTMLInputElement;
         }
-
-        return [word[0] as string, definition as string];
-    }
-
-
-    async function getSeven() {
-        const words = [];
-        for (let i = 0; i < 7; i++) {
-            const word = await getWord();
-            words.push(word);
-            if (word[0].length > maxLength) {
-                maxLength = word[0].length;
+        while (nextElement && nextElement.readOnly) {
+            if (direction === 'next') {
+                nextElement = nextElement.parentElement?.nextElementSibling?.querySelector('.crossword-input') as HTMLInputElement;
+            } else {
+                nextElement = nextElement.parentElement?.previousElementSibling?.querySelector('.crossword-input') as HTMLInputElement;
             }
         }
-        return words;
+        nextElement?.focus();
     }
 
-
-    function checkFilledRow(input: HTMLInputElement) {
-        if (input.parentElement) {
-            const inputs = input.parentElement.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
-            for (let i = 0; i < inputs.length; i++) {
-                if (inputs[i].value.length <= 0) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        else return false;
-    }
-
-
-    function checkCorrectRow(input: HTMLInputElement) {
-        if (input.parentElement) {
-            const inputs = input.parentElement.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
-            for (let i = 0; i < inputs.length; i++) {
-                if (inputs[i].value.toUpperCase() != inputs[i].dataset.letter) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        else return false;
-    }
-
-
-    function setSuccess(input: HTMLInputElement) {
-        if (input.parentElement) {
-            const inputs = input.parentElement.getElementsByTagName("input");
-            for (let i = 0; i < inputs.length; i++) {
-                inputs[i].style.backgroundColor = "rgba(0, 255, 196, 0.5)";
-                inputs[i].readOnly = true;
-            }
-        }
-    }
-
-
-    function checkLetterExisting(button: HTMLButtonElement, letter: string) {
-        const inputs = document.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
-        const lettersInWords = new Set<string>();
-        for (let i = 0; i < inputs.length; i++) {
-            lettersInWords.add(inputs[i].dataset.letter ?? "");
-        }
-
-        if (!lettersInWords.has(letter)) {
-            // console.log(`Letter ${letter} not in words`);
-            button.disabled = true;
-            button.classList.remove("bg-violet-500");
-            button.classList.add("bg-neutral-900");
-            button.style.opacity = "0.5";
-        }
-    }
-
-
-    function letterPress(letter: string, button: HTMLButtonElement) {
-        const inputs = document.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
-        for (let i = 0; i < inputs.length; i++) {
-            if (inputs[i].dataset.letter == letter) {
-                inputs[i].value = letter;
-                inputs[i].readOnly = true;
-            }
-        }
-        button.classList.remove("bg-violet-500");
-        button.classList.add("bg-neutral-900");
-        button.disabled = true;
-        checkAllLettersVisible();
-    }
-
-
-    function checkAllLettersVisible() {
-        const buttons = document.querySelectorAll(".alphabet-button") as NodeListOf<HTMLButtonElement>;
-        buttons.forEach(button => {
-            const letter = button.textContent as string;
-            const inputs = document.querySelectorAll(`.crossword-input[data-letter="${letter}"]`) as NodeListOf<HTMLInputElement>;
-            let allVisible = true;
-            inputs.forEach(input => {
-                if (input.value.toUpperCase() !== letter) {
-                    allVisible = false;
-                }
-            });
-            if (allVisible) {
-                button.disabled = true;
-                button.classList.remove("bg-violet-500");
-                button.classList.add("bg-neutral-900");
-                button.style.opacity = "0.5";
-            }
-            else {
-                button.disabled = false;
-                button.classList.remove("bg-neutral-900");
-                button.classList.add("bg-violet-500");
-                button.style.opacity = "1";
-            }
-        });
-    }
-
-
+    // Executes after the component is fully loaded
     onMount(() => {
         const buttons = document.querySelectorAll(".alphabet-button") as NodeListOf<HTMLButtonElement>;
         buttons.forEach(button => {
@@ -148,93 +37,138 @@
         });
         checkAllLettersVisible();
     });
+
 </script>
 
 
 {#await getSeven()}
     <div class="box-border flex justify-center items-center">
-        <h1 class="text-white">Loading...</h1>
+        <h1 class="text-white">Fetching words...</h1>
     </div>
 {:then words}
-    <div class="box-border flex items-start justify-center flex-col mb-4 gap-1 w-fit">
-        {#each words as word, index}
-            <div class="flex gap-1 items-center">
-                <p class="text-white text-xl mr-3 w-5">{index+1}.</p>
-                {#each word[0] as letter}
-                    <input class="w-10 h-10 text-center text-2xl bg-neutral-900 crossword-input"
-                        type="text"
-                        maxlength="1"
-                        autocapitalize="off"
-                        autocorrect="off"
-                        autocomplete="off"
-                        spellcheck="false"
-                        data-letter={letter.toUpperCase()}
-                        on:input={(e) => {
-                            ((e.target as HTMLInputElement).nextElementSibling as HTMLInputElement)?.focus();
-                            checkAllLettersVisible();
-                        }}
-                        on:keydown={(e) => {
-                            // Gotta love TypeScript inside HTML inside Svelte
-                            if (e.key == "Backspace" && !(e.target as HTMLInputElement).readOnly) {
-                                (e.target as HTMLInputElement).value = "";
-                                (e.target as HTMLInputElement).focus();
-                            }
-                            else if (e.key == "Enter"
-                                && e.target
-                                && checkFilledRow(e.target as HTMLInputElement)
-                            ) {
-                                if (checkCorrectRow(e.target as HTMLInputElement)) {
-                                    setSuccess(e.target as HTMLInputElement);
-                                }
-                                ((e.target as HTMLInputElement).parentElement?.nextElementSibling?.children[1] as HTMLInputElement)?.focus();
-                            }
-                            else if (e.key == "ArrowLeft") {
-                                ((e.target as HTMLInputElement).previousElementSibling as HTMLInputElement)?.focus();
-                            }
-                            else if (e.key == "ArrowRight") {
-                                ((e.target as HTMLInputElement).nextElementSibling as HTMLInputElement)?.focus();
-                            }
-                            else if (e.key == "ArrowUp") {
-                                ((e.target as HTMLInputElement).parentElement?.previousElementSibling?.children[1] as HTMLInputElement)?.focus();
-                            }
-                            else if (e.key == "ArrowDown") {
-                                ((e.target as HTMLInputElement).parentElement?.nextElementSibling?.children[1] as HTMLInputElement)?.focus();
-                            }
-                            checkAllLettersVisible();
-                        }}
-                    >
-                {/each}
-                {#each Array(maxLength - word[0].length) as _}
-                    <div class="w-10 h-10 bg-neutral-950"></div>
-                {/each}
-            </div>
-        {/each}
-    </div>
-    <div class="box-border flex justify-center items-center mb-4 gap-1 h-fit">
-        <div class="flex gap-1 items-center">
-            <!-- For now, small test -->
-            {#each Array(9) as _, i}
-                <div class="relative">
-                    <input class="w-10 h-10 text-center text-2xl bg-neutral-900 password-input" type="text" maxlength="1" readonly>
-                    <span class="absolute bottom-1 left-1 text-xs text-neutral-400">{i + 1}</span>
+    {#await generatePassword(stripDefinition(words))}
+        <div class="box-border flex justify-center items-center">
+            <h1 class="text-white">Generating password...</h1>
+        </div>
+    {:then {password, finalPositions}}
+        <div class="box-border flex items-start justify-center flex-col mb-4 gap-1 w-fit">
+            {#each words as word, index}
+                <div class="flex gap-1 items-center crossword-row">
+                    <p class="text-white text-xl mr-3 w-5">{index+1}.</p>
+                    {#each word[0] as letter}
+                        <div class="relative">
+                            <input class="w-10 h-10 text-center text-2xl bg-neutral-900 crossword-input"
+                                type="text"
+                                maxlength="1"
+                                autocapitalize="off"
+                                autocorrect="off"
+                                autocomplete="off"
+                                spellcheck="false"
+                                data-letter={letter.toUpperCase()}
+                                on:input={(e) => {
+                                    const target = e.target as HTMLInputElement;
+                                    target.value = target.value.toUpperCase();
+                                    focusNextInput(target, 'next');
+                                    checkAllLettersVisible();
+                                }}
+                                on:keydown={(e) => {
+                                    const target = e.target as HTMLInputElement;
+                                    if (e.key == "Backspace" && !target.readOnly) {
+                                        target.value = "";
+                                        target.focus();
+                                    }
+                                    else if (e.key == "Enter" && target && checkFilledRow(target)) {
+                                        if (checkCorrectRow(target)) {
+                                            setSuccess(target);
+                                        }
+                                        const nextRow = target.parentElement?.parentElement?.nextElementSibling;
+                                        const firstInputInNextRow = nextRow?.querySelector('.crossword-input') as HTMLInputElement;
+                                        firstInputInNextRow?.focus();
+                                    }
+                                    else if (e.key == "ArrowLeft") {
+                                        focusNextInput(target, 'previous');
+                                    }
+                                    else if (e.key == "ArrowRight") {
+                                        focusNextInput(target, 'next');
+                                    }
+                                    else if (e.key == "ArrowUp") {
+                                        ((target.parentElement?.parentElement?.previousElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus());
+                                    }
+                                    else if (e.key == "ArrowDown") {
+                                        ((target.parentElement?.parentElement?.nextElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus());
+                                    }
+                                    checkAllLettersVisible();
+                                }}
+                            >
+                            <span class="absolute bottom-0 left-0 h-fit text-xs text-neutral-400"></span>
+                        </div>
+                    {/each}
+                    {#each Array(maxLength - word[0].length) as _}
+                        <div class="w-10 h-10 bg-neutral-950"></div>
+                    {/each}
                 </div>
             {/each}
         </div>
-    </div>
-    <div class="box-border flex justify-center items-center mb-4 gap-1 h-fit flex-wrap">
+        <div class="box-border flex justify-center items-center mb-4 gap-1 h-fit">
+            <div class="flex gap-1 items-center border-violet-500 border-2 rounded-md p-1">
+                {#each password as letter, i}
+                    <div class="relative">
+                        <input class="w-10 h-10 text-center text-2xl bg-neutral-900 password-input" type="text" maxlength="1" data-letter="{letter}" readonly placeholder="{letter.toUpperCase()}">
+                        <span class="absolute bottom-0 left-0 h-fit text-xs text-neutral-400">{i+1}</span>
+                    </div>
+                {/each}
+            </div>
+        </div>
+        <div class="box-border flex justify-center items-center mb-4 gap-1 h-fit flex-wrap">
+            {#each alphabet as letter}
+                <button id="button-letter-{letter}" class="w-6 h-8 bg-violet-500 text-white alphabet-button" on:click={(event) => letterPress(letter, event.currentTarget as HTMLButtonElement)}><p class="w-full h-full flex justify-center items-center text-center">{letter}</p></button>
+            {/each}
+        </div>
+        <div class="box-border flex justify-center items-start flex-col gap-1">
+            {#each words as wordDef, index}
+                <p class="text-white text-left">{index+1}. {wordDef[1]}</p>
+            {/each}
+        </div>
         {#each alphabet as letter}
-            <button id="button-letter-{letter}" class="w-6 h-8 bg-violet-500 text-white alphabet-button" on:click={(event) => letterPress(letter, event.currentTarget as HTMLButtonElement)}><p class="w-full h-full flex justify-center items-center text-center">{letter}</p></button>
+            <!-- That's cool -->
+            {#await tick()}
+                {checkLetterExisting(document.getElementById(`button-letter-${letter}`) as HTMLButtonElement, letter)}
+            {/await}
         {/each}
-    </div>
-    <div class="box-border flex justify-center items-start flex-col gap-1">
-        {#each words as wordDef, index}
-            <p class="text-white text-left">{index+1}. {wordDef[1]}</p>
-        {/each}
-    </div>
-    {#each alphabet as letter}
-        <!-- That's cool -->
         {#await tick()}
-            {checkLetterExisting(document.getElementById(`button-letter-${letter}`) as HTMLButtonElement, letter)}
+            {finalPositions.forEach(position => {
+                // array [i][j] where i is the row and j is the column
+                const inputs: HTMLInputElement[][] = Array.from(document.querySelectorAll('.crossword-row')).map(row => Array.from(row.querySelectorAll('.crossword-input')));
+                position.forEach((arr) => {
+                    // add little numbers like in password fields - the numbers are arr[2]
+                    const inputElement = inputs[arr[0]][arr[1]];
+                    if (inputElement.parentElement) {
+                        const spanElement = inputElement.parentElement.querySelector('span');
+                        if (spanElement) {
+                            spanElement.textContent = `${arr[2]}`;
+                            const passwordInputs = document.querySelectorAll('.password-input');
+                            inputElement.addEventListener("input", e => {
+                                if (inputElement.value.toUpperCase() == inputElement.dataset.letter) {
+                                    (passwordInputs[arr[2]-1] as HTMLInputElement).value = (passwordInputs[arr[2]-1] as HTMLInputElement).dataset.letter?.toUpperCase() ?? "";
+                                }
+                                checkPassword();
+                            });
+                            inputElement.addEventListener("focusout", e => {
+                                if (inputElement.value.toUpperCase() != inputElement.dataset.letter) {
+                                    (passwordInputs[arr[2]-1] as HTMLInputElement).value = "";
+                                }
+                                checkPassword();
+                            });
+                        }
+                    }
+                });
+            })}
+            {uncoverRandomLetters()}
+            {checkAllLettersVisible()}
         {/await}
-    {/each}
+    {/await}
+    {:catch}
+        <div class="box-border flex justify-center items-center">
+            <h1 class="text-white">An error occurred while fetching the words.</h1>
+        </div>
 {/await}

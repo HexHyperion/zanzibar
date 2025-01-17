@@ -50,6 +50,13 @@ h1 {
   text-align: center;
 }
 
+input.crossword-input:read-only {
+  color: #5af04c;
+}
+input.password-input:read-only {
+  color: #ffffff;
+}
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;
