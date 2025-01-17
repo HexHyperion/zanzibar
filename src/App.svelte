@@ -150,6 +150,7 @@
                             inputElement.addEventListener("input", e => {
                                 if (inputElement.value.toUpperCase() == inputElement.dataset.letter) {
                                     (passwordInputs[arr[2]-1] as HTMLInputElement).value = (passwordInputs[arr[2]-1] as HTMLInputElement).dataset.letter?.toUpperCase() ?? "";
+                                    inputElement.readOnly = true;
                                 }
                                 checkPassword();
                             });

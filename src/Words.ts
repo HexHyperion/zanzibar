@@ -26,6 +26,16 @@ export function checkCorrectRow(input: HTMLInputElement) {
     else return false;
 }
 
+// Apply rotation animation to inputs
+function applyRotationAnimation(inputs: HTMLInputElement[]) {
+    inputs.forEach((input, index) => {
+        setTimeout(() => {
+            input.style.transition = "transform 0.85s";
+            input.style.transform = "rotateY(360deg)";
+        }, index * 100);
+    });
+}
+
 // Sets a green background of a correctly filled word
 export function setSuccess(input: HTMLInputElement) {
     if (input.parentElement?.parentElement) {
@@ -34,6 +44,7 @@ export function setSuccess(input: HTMLInputElement) {
             inputs[i].style.backgroundColor = "#22531e";
             inputs[i].readOnly = true;
         }
+        applyRotationAnimation(Array.from(inputs));
     }
 }
 
@@ -50,6 +61,11 @@ export function checkPassword() {
         input.style.backgroundColor = "#22531e";
         input.readOnly = true;
     });
+    const parentElement = passwordInputs[0].parentElement?.parentElement;
+    if (parentElement) {
+        parentElement.style.borderColor = "#5af04c";
+    }
+    applyRotationAnimation(Array.from(passwordInputs));
 }
 
 // Uncover three random letters in each word
@@ -60,14 +76,31 @@ export function uncoverRandomLetters() {
         const indexes = [];
         while (indexes.length < 3) {
             const randomIndex = Math.floor(Math.random() * inputs.length);
-            // if (!indexes.has(randomIndex)) {
             indexes.push(randomIndex);
-            // }
         }
         indexes.forEach(index => {
             inputs[index].value = inputs[index].dataset.letter ?? "";
             inputs[index].readOnly = true;
-        })
-        checkPassword();
+        });
+    });
+    checkRowsPasswordLetters();
+}
+
+// Check all rows for matching password fields
+export function checkRowsPasswordLetters() {
+    const passwordInputs = document.querySelectorAll(".password-input") as NodeListOf<HTMLInputElement>;
+    const rows = document.querySelectorAll(".crossword-row");
+    rows.forEach(row => {
+        const inputs = row.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
+        inputs.forEach(input => {
+            const number = input.parentElement?.children[1].textContent;
+            if (number) {
+                const passwordInput = passwordInputs[parseInt(number) - 1];
+                if (input.value.toUpperCase() === passwordInput.dataset.letter?.toUpperCase()) {
+                    passwordInput.value = passwordInput.dataset.letter?.toUpperCase() ?? "";
+                    input.readOnly = true;
+                }
+            }
+        });
     });
 }
