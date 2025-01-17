@@ -1,4 +1,4 @@
-const wordEndpoint = "https://random-word-api.herokuapp.com/word";
+const wordEndpoint = "https://random-word-api.vercel.app/api?words=1";
 const definitionEndpoint = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 
 export let maxLength = 0;

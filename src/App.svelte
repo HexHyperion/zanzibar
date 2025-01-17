@@ -93,6 +93,12 @@
       opacity: 1;
     }
   }
+
+  .crossword-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
 </style>
 
 <div class:win-animation={showWinMessage}>
@@ -106,70 +112,72 @@
         <h1 class="text-white">Generating password...</h1>
       </div>
     {:then {password, finalPositions}}
-      <div class="box-border flex items-start justify-center flex-col mb-4 gap-1 w-fit">
-        {#each words as word, index}
-          <div class="flex gap-1 items-center crossword-row">
-            <p class="text-white text-xl mr-3 w-5">{index+1}.</p>
-            {#each word[0] as letter}
-              <div class="relative">
-                <input class="w-10 h-10 text-center text-2xl bg-neutral-900 crossword-input"
-                  type="text"
-                  maxlength="1"
-                  autocapitalize="off"
-                  autocorrect="off"
-                  autocomplete="off"
-                  spellcheck="false"
-                  data-letter={letter.toUpperCase()}
-                  on:input={(e) => {
-                    const target = e.target as HTMLInputElement;
-                    target.value = target.value.toUpperCase();
-                    focusNextInput(target, 'next');
-                    checkAllLettersVisible();
-                    if (checkFilledRow(target)) {
-                      if (checkCorrectRow(target)) {
-                        setSuccess(target);
-                      }
-                      checkPassword();
-                    }
-                    if (checkAllRowsFilled() && checkAllRowsCorrect()) {
-                      handleStopTimer();
-                    }
-                  }}
-                  on:keydown={(e) => {
-                    const target = e.target as HTMLInputElement;
-                    if (e.key == "Backspace" && !target.readOnly) {
-                      target.value = "";
-                      target.focus();
-                    }
-                    else if (e.key == "ArrowLeft") {
-                      focusNextInput(target, 'previous');
-                    }
-                    else if (e.key == "ArrowRight") {
+      <div class="crossword-container">
+        <div class="box-border flex items-start justify-center flex-col mb-4 gap-1 w-fit">
+          {#each words as word, index}
+            <div class="flex gap-1 items-center crossword-row">
+              <p class="text-white text-xl mr-3 w-5">{index+1}.</p>
+              {#each word[0] as letter}
+                <div class="relative">
+                  <input class="w-10 h-10 text-center text-2xl bg-neutral-900 crossword-input"
+                    type="text"
+                    maxlength="1"
+                    autocapitalize="off"
+                    autocorrect="off"
+                    autocomplete="off"
+                    spellcheck="false"
+                    data-letter={letter.toUpperCase()}
+                    on:input={(e) => {
+                      const target = e.target as HTMLInputElement;
+                      target.value = target.value.toUpperCase();
                       focusNextInput(target, 'next');
-                    }
-                    else if (e.key == "ArrowUp") {
-                      ((target.parentElement?.parentElement?.previousElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus());
-                    }
-                    else if (e.key == "ArrowDown") {
-                      ((target.parentElement?.parentElement?.nextElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus());
-                    }
-                    checkAllLettersVisible();
-                  }}
-                >
-                <span class="absolute bottom-0 left-0 h-fit text-xs text-neutral-400"></span>
-              </div>
-            {/each}
-            {#each Array(maxLength - word[0].length) as _}
-              <div class="w-10 h-10 bg-neutral-950"></div>
-            {/each}
-          </div>
-        {/each}
+                      checkAllLettersVisible();
+                      if (checkFilledRow(target)) {
+                        if (checkCorrectRow(target)) {
+                          setSuccess(target);
+                        }
+                        checkPassword();
+                      }
+                      if (checkAllRowsFilled() && checkAllRowsCorrect()) {
+                        handleStopTimer();
+                      }
+                    }}
+                    on:keydown={(e) => {
+                      const target = e.target as HTMLInputElement;
+                      if (e.key == "Backspace" && !target.readOnly) {
+                        target.value = "";
+                        target.focus();
+                      }
+                      else if (e.key == "ArrowLeft") {
+                        focusNextInput(target, 'previous');
+                      }
+                      else if (e.key == "ArrowRight") {
+                        focusNextInput(target, 'next');
+                      }
+                      else if (e.key == "ArrowUp") {
+                        ((target.parentElement?.parentElement?.previousElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus());
+                      }
+                      else if (e.key == "ArrowDown" || e.key == "Enter") {
+                        ((target.parentElement?.parentElement?.nextElementSibling?.querySelector('.crossword-input') as HTMLInputElement)?.focus());
+                      }
+                      checkAllLettersVisible();
+                    }}
+                  >
+                  <span class="absolute bottom-0 left-0 h-fit text-xs text-neutral-400"></span>
+                </div>
+              {/each}
+              {#each Array(maxLength - word[0].length) as _}
+                <div class="w-10 h-10 bg-neutral-950"></div>
+              {/each}
+            </div>
+          {/each}
+        </div>
       </div>
       <div class="box-border flex justify-center items-center mb-4 gap-1 h-fit">
         <div class="flex gap-1 items-center border-violet-500 border-2 rounded-md p-1">
           {#each password as letter, i}
             <div class="relative">
-              <input class="w-10 h-10 text-center text-2xl bg-neutral-900 password-input" type="text" maxlength="1" data-letter="{letter}" readonly placeholder="{letter.toUpperCase()}">
+              <input class="w-10 h-10 text-center text-2xl bg-neutral-900 password-input" type="text" maxlength="1" data-letter="{letter}" readonly>
               <span class="absolute bottom-0 left-0 h-fit text-xs text-neutral-400">{i+1}</span>
             </div>
           {/each}

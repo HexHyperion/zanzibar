@@ -3,6 +3,8 @@
 import { checkCorrectRow, checkPassword, setSuccess, checkRowsPasswordLetters, checkFilledRow, checkAllRowsCorrect, checkAllRowsFilled } from "./Words";
 import { stopTimer } from "./Timer";
 
+let buttonsUsed = 0;
+
 // If so, disables their buttons
 export function checkLetterExisting(button: HTMLButtonElement, letter: string) {
     const inputs = document.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
@@ -21,6 +23,7 @@ export function checkLetterExisting(button: HTMLButtonElement, letter: string) {
 
 // Handles the press of the letter button - uncover all instances and disable
 export function letterPress(letter: string, button: HTMLButtonElement) {
+    buttonsUsed++;
     const inputs = document.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
     const passwordInputs = document.querySelectorAll(".password-input") as NodeListOf<HTMLInputElement>;
     for (let i = 0; i < inputs.length; i++) {
@@ -55,6 +58,18 @@ export function letterPress(letter: string, button: HTMLButtonElement) {
             const winMessageEvent = new CustomEvent("winMessage");
             document.dispatchEvent(winMessageEvent);
         }
+    }
+
+    if (buttonsUsed >= 3) {
+        const buttons = document.querySelectorAll(".alphabet-button") as NodeListOf<HTMLButtonElement>;
+        buttons.forEach(button => {
+            if (!button.disabled) {
+                button.disabled = true;
+                button.classList.remove("bg-violet-500");
+                button.classList.add("bg-red-900");
+                button.style.opacity = "0.5";
+            }
+        });
     }
 }
 
