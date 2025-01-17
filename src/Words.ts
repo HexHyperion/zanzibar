@@ -51,3 +51,23 @@ export function checkPassword() {
         input.readOnly = true;
     });
 }
+
+// Uncover three random letters in each word
+export function uncoverRandomLetters() {
+    const rows = document.querySelectorAll(".crossword-row");
+    rows.forEach((row, rindex) => {
+        const inputs = row.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
+        const indexes = [];
+        while (indexes.length < 3) {
+            const randomIndex = Math.floor(Math.random() * inputs.length);
+            // if (!indexes.has(randomIndex)) {
+            indexes.push(randomIndex);
+            // }
+        }
+        indexes.forEach(index => {
+            inputs[index].value = inputs[index].dataset.letter ?? "";
+            inputs[index].readOnly = true;
+        })
+        checkPassword();
+    });
+}

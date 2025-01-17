@@ -2,7 +2,7 @@
     import { onMount, tick } from "svelte";
     import { getSeven, generatePassword, maxLength } from "./Fetching";
     import { checkLetterExisting, checkAllLettersVisible, letterPress } from "./Letters";
-    import { checkFilledRow, checkCorrectRow, setSuccess, checkPassword } from "./Words";
+    import { checkFilledRow, checkCorrectRow, setSuccess, checkPassword, uncoverRandomLetters } from "./Words";
 
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -11,15 +11,7 @@
         return array.map(word => word[0]);
     }
 
-    // Executes after the component is fully loaded
-    onMount(() => {
-        const buttons = document.querySelectorAll(".alphabet-button") as NodeListOf<HTMLButtonElement>;
-        buttons.forEach(button => {
-            checkLetterExisting(button, button.textContent as string);
-        });
-        checkAllLettersVisible();
-    });
-
+    // Focuses on the next available input field
     function focusNextInput(current: HTMLInputElement, direction: 'next' | 'previous') {
         let nextElement: HTMLInputElement | null = null;
         if (direction === 'next') {
@@ -36,6 +28,16 @@
         }
         nextElement?.focus();
     }
+
+    // Executes after the component is fully loaded
+    onMount(() => {
+        const buttons = document.querySelectorAll(".alphabet-button") as NodeListOf<HTMLButtonElement>;
+        buttons.forEach(button => {
+            checkLetterExisting(button, button.textContent as string);
+        });
+        checkAllLettersVisible();
+    });
+
 </script>
 
 
@@ -134,34 +136,35 @@
             {/await}
         {/each}
         {#await tick()}
-        {finalPositions.forEach(position => {
-            // array [i][j] where i is the row and j is the column
-            const inputs: HTMLInputElement[][] = Array.from(document.querySelectorAll('.crossword-row')).map(row => Array.from(row.querySelectorAll('.crossword-input')));
-            position.forEach((arr) => {
-                // add little numbers like in password fields - the numbers are arr[2]
-                const inputElement = inputs[arr[0]][arr[1]];
-                if (inputElement.parentElement) {
-                    const spanElement = inputElement.parentElement.querySelector('span');
-                    if (spanElement) {
-                        spanElement.textContent = `${arr[2]}`;
-                        const passwordInputs = document.querySelectorAll('.password-input');
-                        inputElement.addEventListener("input", e => {
-                            if (inputElement.value.toUpperCase() == inputElement.dataset.letter) {
-                                console.log(inputElement.value.toUpperCase(), inputElement.dataset.letter);
-                                (passwordInputs[arr[2]-1] as HTMLInputElement).value = (passwordInputs[arr[2]-1] as HTMLInputElement).dataset.letter?.toUpperCase() ?? "";
-                            }
-                            checkPassword();
-                        });
-                        inputElement.addEventListener("focusout", e => {
-                            if (inputElement.value.toUpperCase() != inputElement.dataset.letter) {
-                                (passwordInputs[arr[2]-1] as HTMLInputElement).value = "";
-                            }
-                            checkPassword();
-                        });
+            {finalPositions.forEach(position => {
+                // array [i][j] where i is the row and j is the column
+                const inputs: HTMLInputElement[][] = Array.from(document.querySelectorAll('.crossword-row')).map(row => Array.from(row.querySelectorAll('.crossword-input')));
+                position.forEach((arr) => {
+                    // add little numbers like in password fields - the numbers are arr[2]
+                    const inputElement = inputs[arr[0]][arr[1]];
+                    if (inputElement.parentElement) {
+                        const spanElement = inputElement.parentElement.querySelector('span');
+                        if (spanElement) {
+                            spanElement.textContent = `${arr[2]}`;
+                            const passwordInputs = document.querySelectorAll('.password-input');
+                            inputElement.addEventListener("input", e => {
+                                if (inputElement.value.toUpperCase() == inputElement.dataset.letter) {
+                                    (passwordInputs[arr[2]-1] as HTMLInputElement).value = (passwordInputs[arr[2]-1] as HTMLInputElement).dataset.letter?.toUpperCase() ?? "";
+                                }
+                                checkPassword();
+                            });
+                            inputElement.addEventListener("focusout", e => {
+                                if (inputElement.value.toUpperCase() != inputElement.dataset.letter) {
+                                    (passwordInputs[arr[2]-1] as HTMLInputElement).value = "";
+                                }
+                                checkPassword();
+                            });
+                        }
                     }
-                }
-            });
-        })}
+                });
+            })}
+            {uncoverRandomLetters()}
+            {checkAllLettersVisible()}
         {/await}
     {/await}
     {:catch}
