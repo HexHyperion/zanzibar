@@ -48,6 +48,9 @@ export async function getSeven() {
             maxLength = word[0].length;
         }
     }
+
+    console.log(words);
+
     return words;
 }
 
@@ -84,10 +87,7 @@ export async function generatePassword(words: string[]) {
 
         finalPositions.set(letter, (finalPositions.get(letter) ?? new Set()).add([...randomPosition, i+1]));
         letterPositions.get(letter)?.delete(randomPosition);
-    }
-
-    console.log(finalPositions);
-    
+    }    
 
     return {password, finalPositions};
 }

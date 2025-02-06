@@ -3,7 +3,7 @@
 import { checkCorrectRow, checkPassword, setSuccess, checkRowsPasswordLetters, checkFilledRow, checkAllRowsCorrect, checkAllRowsFilled } from "./Words";
 import { stopTimer } from "./Timer";
 
-let buttonsUsed = 0;
+export let buttonsUsed = 0;
 
 // If so, disables their buttons
 export function checkLetterExisting(button: HTMLButtonElement, letter: string) {
@@ -61,15 +61,7 @@ export function letterPress(letter: string, button: HTMLButtonElement) {
     }
 
     if (buttonsUsed >= 3) {
-        const buttons = document.querySelectorAll(".alphabet-button") as NodeListOf<HTMLButtonElement>;
-        buttons.forEach(button => {
-            if (!button.disabled) {
-                button.disabled = true;
-                button.classList.remove("bg-violet-500");
-                button.classList.add("bg-red-900");
-                button.style.opacity = "0.5";
-            }
-        });
+        disableAllAlphabetButtons();
     }
 }
 
@@ -86,17 +78,44 @@ export function checkAllLettersVisible() {
                 allVisible = false;
             }
         });
-        if (allVisible) {
+        if (!button.disabled) {
+            if (allVisible) {
+                button.disabled = true;
+                button.classList.remove("bg-violet-500");
+                button.classList.add("bg-neutral-900");
+                button.style.opacity = "0.5";
+            }
+            else {
+                button.disabled = false;
+                button.classList.remove("bg-neutral-900");
+                button.classList.add("bg-violet-500");
+                button.style.opacity = "1";
+            }
+        }
+        else if (allVisible) {
+            button.disabled = true;
+            button.classList.remove("bg-red-900");
+            button.classList.add("bg-neutral-900");
+            button.style.opacity = "0.5";
+        }
+    });
+}
+
+// Disable all alphabet buttons
+export function disableAllAlphabetButtons() {
+    const buttons = document.querySelectorAll(".alphabet-button") as NodeListOf<HTMLButtonElement>;
+    buttons.forEach(button => {
+        if (!button.disabled) {
+            button.disabled = true;
+            button.classList.remove("bg-violet-500");
+            button.classList.add("bg-red-900");
+            button.style.opacity = "0.5";
+        }
+        else {
             button.disabled = true;
             button.classList.remove("bg-violet-500");
             button.classList.add("bg-neutral-900");
             button.style.opacity = "0.5";
-        }
-        else {
-            button.disabled = false;
-            button.classList.remove("bg-neutral-900");
-            button.classList.add("bg-violet-500");
-            button.style.opacity = "1";
         }
     });
 }

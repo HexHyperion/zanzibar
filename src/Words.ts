@@ -1,3 +1,5 @@
+import { buttonsUsed, disableAllAlphabetButtons } from "./Letters";
+
 // Checks if the row is filled, no matter if correctly or not
 export function checkFilledRow(input: HTMLInputElement) {
     if (input.parentElement?.parentElement) {
@@ -9,6 +11,9 @@ export function checkFilledRow(input: HTMLInputElement) {
         }
         if (checkCorrectRow(inputs[0])) {
             setSuccess(inputs[0]);
+        }
+        if (buttonsUsed >= 3) {
+            disableAllAlphabetButtons();
         }
         return true;
     }
@@ -23,6 +28,9 @@ export function checkCorrectRow(input: HTMLInputElement) {
             if (inputs[i].value.toUpperCase() != inputs[i].dataset.letter) {
                 return false;
             }
+        }
+        if (buttonsUsed >= 3) {
+            disableAllAlphabetButtons();
         }
         return true;
     }
@@ -114,7 +122,7 @@ export function uncoverRandomLetters() {
     rows.forEach((row, rindex) => {
         const inputs = row.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
         const indexes = [];
-        while (indexes.length < 3) {
+        while (indexes.length < Math.ceil(Math.random() * 3)) {
             const randomIndex = Math.floor(Math.random() * inputs.length);
             indexes.push(randomIndex);
         }
@@ -123,6 +131,9 @@ export function uncoverRandomLetters() {
             inputs[index].readOnly = true;
         });
     });
+    if (buttonsUsed >= 3) {
+        disableAllAlphabetButtons();
+    }
     checkRowsPasswordLetters();
 }
 
