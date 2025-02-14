@@ -119,12 +119,13 @@ function validatePassword() {
 // Uncover three random letters in each word
 export function uncoverRandomLetters() {
     const rows = document.querySelectorAll(".crossword-row");
-    rows.forEach((row, rindex) => {
+    rows.forEach((row) => {
         const inputs = row.querySelectorAll(".crossword-input") as NodeListOf<HTMLInputElement>;
-        const indexes = [];
-        while (indexes.length < Math.ceil(Math.random() * 3)) {
+        const indexes = new Set<number>();
+        const maxUncover = Math.min(3, inputs.length - 1);
+        while (indexes.size < Math.ceil(Math.random() * maxUncover)) {
             const randomIndex = Math.floor(Math.random() * inputs.length);
-            indexes.push(randomIndex);
+            indexes.add(randomIndex);
         }
         indexes.forEach(index => {
             inputs[index].value = inputs[index].dataset.letter ?? "";
